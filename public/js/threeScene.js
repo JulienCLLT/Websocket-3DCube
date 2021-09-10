@@ -33,8 +33,8 @@ function init() {
 
 	// cubes
 
-	// cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
-	// cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'js/textures/square-outline-textured.png' ) } );
+	cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
+	cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'js/textures/square-outline-textured.png' ) } );
 
 	// grid
 
@@ -68,13 +68,37 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
-		controls = new THREE.OrbitControls( camera, renderer.domElement );
-		controls.target.set( 0, 0, 0 );
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
+	controls.target.set( 0, 0, 0 );
 
-		animate();
+	animate();
 
-	document.addEventListener( 'pointermove', onPointerMove );
-	document.addEventListener( 'pointerdown', onPointerDown );
+	// document.addEventListener( 'pointermove', onPointerMove );
+	 	document.addEventListener( 'pointermove', event=>{
+			//console.log(event); //bonne info ici
+			if (event) {
+			
+				socket.emit('movePointer', {
+					clientX:event.clientX,
+					clientY:event.clientY
+				});
+				}
+		} );
+
+
+	// document.addEventListener( 'pointerdown', onPointerDown );
+		document.addEventListener( 'pointerdown', event=>{
+			console.log(event); //bonne info ici
+			if (event) {
+			
+				socket.emit('demandeCube', {
+					clientX:event.clientX,
+					clientY:event.clientY
+				});
+				}
+		} );
+
+	
 	document.addEventListener( 'keydown', onDocumentKeyDown );
 	document.addEventListener( 'keyup', onDocumentKeyUp );
 
@@ -84,14 +108,14 @@ function init() {
 
 }
 
-		function   animate() {
-			renderer.render(scene, camera);
-			controls.update(clock.getDelta());
-			requestAnimationFrame(() => animate());
-		}
+function   animate() {
+	renderer.render(scene, camera);
+	controls.update(clock.getDelta());
+	requestAnimationFrame(() => animate());
+}
 
 function onWindowResize() {
-
+	console.log('on bouge la cam');
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
@@ -122,9 +146,6 @@ function onPointerMove( event ) {
 
 function onPointerDown( event ) {
 	console.log("function pour ajouter un cube");
-
-	cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
-	cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'js/textures/square-outline-textured.png' ) } );
 
 	pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
@@ -194,25 +215,29 @@ function render() {
 }
 
 init();
- render();
+render();
 
 
 
 const socket = io();
 
-window.addEventListener('click',event=>{
-	console.log(event); //bonne info ici
-	if (event) {
+// window.addEventListener('click',event=>{
+// 	console.log(event); //bonne info ici
+// 	if (event) {
 	
-		socket.emit('demandeCube', {
-			clientX:event.clientX,
-			clientY:event.clientY
-		});
-		}
-});
+// 		socket.emit('demandeCube', {
+// 			clientX:event.clientX,
+// 			clientY:event.clientY
+// 		});
+// 		}
+// });
 
 socket.on('ajoutCube', (event)=>{
 	// console.log(event); pas les bonne info
 	onPointerDown(event);
 	//render();
 });
+
+socket.on('movingPointer', (event) =>{
+	onPointerMove(event);
+})

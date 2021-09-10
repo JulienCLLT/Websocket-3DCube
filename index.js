@@ -24,4 +24,8 @@ io.on('connection', (socket) => {
         //  console.log(event);
         io.emit('ajoutCube', event )
     });
+    socket.on('movePointer', (event)=>{
+        io.emit('movingPointer',event )
+    });
+    
 });
