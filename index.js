@@ -3,7 +3,7 @@ const { Server }= require('socket.io');
 
 const app = express();
 
-const port =  3800 ;
+const port =  3000 ;
 
 app.use(express.static('./public'));
 
@@ -20,12 +20,21 @@ const io = new Server(app.listen(port, () => {
 
 io.on('connection', (socket) => {
     console.log('connected');
-    socket.on('demandeCube', (event)=>{
-        //  console.log(event);
-        io.emit('ajoutCube', event )
+    socket.on('emitCube', (obj)=>{
+        io.emit('ajoutCube', obj );
     });
-    socket.on('movePointer', (event)=>{
-        io.emit('movingPointer',event )
+
+    socket.on('movePointer', (obj)=>{
+        io.emit('movingPointer',obj )
     });
+
+    socket.on('emitKeyDown', (obj)=>{
+        io.emit('keyDown',obj)
+    });
+
+    socket.on('emitKeyUp', (obj)=>{
+        io.emit('keyUp',obj)
+    });
+
     
 });

@@ -68,41 +68,47 @@ function init() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
-	controls = new THREE.OrbitControls( camera, renderer.domElement );
-	controls.target.set( 0, 0, 0 );
 
-	animate();
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.target.set( 0, 0, 0 );
 
-	// document.addEventListener( 'pointermove', onPointerMove );
-	 	document.addEventListener( 'pointermove', event=>{
-			//console.log(event); //bonne info ici
-			if (event) {
-			
-				socket.emit('movePointer', {
-					clientX:event.clientX,
-					clientY:event.clientY
-				});
-				}
-		} );
-
-
-	// document.addEventListener( 'pointerdown', onPointerDown );
-		document.addEventListener( 'pointerdown', event=>{
-			console.log(event); //bonne info ici
-			if (event) {
-			
-				socket.emit('demandeCube', {
-					clientX:event.clientX,
-					clientY:event.clientY
-				});
-				}
-		} );
+		animate();
 
 	
-	document.addEventListener( 'keydown', onDocumentKeyDown );
-	document.addEventListener( 'keyup', onDocumentKeyUp );
+	 	document.addEventListener( 'pointermove', event=>{
+			socket.emit('movePointer', {
+					clientX:event.clientX,
+					clientY:event.clientY
+				});
+		});
 
-	//
+		
+		document.addEventListener( 'pointerdown', event=>{
+			socket.emit('emitCube', {
+					clientX:event.clientX,
+					clientY:event.clientY,
+				});
+		});
+
+	
+		
+		document.addEventListener( 'keydown', event=>{
+			socket.emit('emitKeyDown', {
+					keyCode:event.keyCode,
+					
+				});
+		} );
+		
+
+		document.addEventListener( 'keyup',event=>{
+			socket.emit('emitKeyUp', {
+					keyCode:event.keyCode,
+					
+				});
+		} );
+
+
+	
 
 	window.addEventListener( 'resize', onWindowResize );
 
@@ -112,10 +118,11 @@ function   animate() {
 	renderer.render(scene, camera);
 	controls.update(clock.getDelta());
 	requestAnimationFrame(() => animate());
+	// console.log(renderer);
 }
 
 function onWindowResize() {
-	console.log('on bouge la cam');
+	
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
@@ -124,7 +131,7 @@ function onWindowResize() {
 }
 
 function onPointerMove( event ) {
-
+	
 	pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
 	raycaster.setFromCamera( pointer, camera );
@@ -141,11 +148,12 @@ function onPointerMove( event ) {
 	}
 
 	render();
+	
 
 }
 
 function onPointerDown( event ) {
-	console.log("function pour ajouter un cube");
+	//console.log("function pour ajouter un cube");
 
 	pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 
@@ -173,6 +181,7 @@ function onPointerDown( event ) {
 
 		} else {
 
+			
 			const voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
 			voxel.position.copy( intersect.point ).add( intersect.face.normal );
 			voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
@@ -189,7 +198,7 @@ function onPointerDown( event ) {
 }
 
 function onDocumentKeyDown( event ) {
-
+	console.log(event);
 	switch ( event.keyCode ) {
 
 		case 16: isShiftDown = true; break;
@@ -199,7 +208,7 @@ function onDocumentKeyDown( event ) {
 }
 
 function onDocumentKeyUp( event ) {
-
+ console.log(event);
 	switch ( event.keyCode ) {
 
 		case 16: isShiftDown = false; break;
@@ -221,23 +230,22 @@ render();
 
 const socket = io();
 
-// window.addEventListener('click',event=>{
-// 	console.log(event); //bonne info ici
-// 	if (event) {
-	
-// 		socket.emit('demandeCube', {
-// 			clientX:event.clientX,
-// 			clientY:event.clientY
-// 		});
-// 		}
-// });
+
 
 socket.on('ajoutCube', (event)=>{
-	// console.log(event); pas les bonne info
-	onPointerDown(event);
-	//render();
+	onPointerDown(event);	
 });
 
 socket.on('movingPointer', (event) =>{
 	onPointerMove(event);
-})
+});
+
+socket.on('keyDown',(event)=>{
+	onDocumentKeyDown(event);
+});
+
+socket.on('keyUp',(event)=>{
+	onDocumentKeyUp(event);
+});
+
+
